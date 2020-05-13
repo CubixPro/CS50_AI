@@ -3,12 +3,12 @@ Tic Tac Toe Player
 """
 
 import math
+import copy
 
 X = "X"
 O = "O"
 EMPTY = None
-
-
+dp = {}
 def initial_state():
     """
     Returns starting state of the board.
@@ -18,19 +18,22 @@ def initial_state():
             [EMPTY, EMPTY, EMPTY]]
 
 
+b = initial_state()
+dp[str(b)] = (1, 1)
+
 def player(board):
     xcount = 0
-    ycount = 0
-    for row in board:
-        for cell in row:
-            if(cell == "X"):
+    ocount = 0
+    for i in range(3): 
+        for cell in range(3):
+            if(board[i][cell] == "X"):
                 xcount = xcount + 1 
-            else:    
-                ycount = ycount + 1
-    if(xcount == ycount):
-        return "X" 
-    else:
-        return "Y"
+            elif(board[i][cell] == O):    
+                ocount = ocount + 1
+    if(ocount == xcount):
+        return X
+    else: 
+        return O
 
 
 def actions(board):
@@ -43,8 +46,10 @@ def actions(board):
 
 
 def result(board, action):
-    board[action[0]][action[1]] = action[2]
-    return board 
+    curr = player(board)
+    newboard = copy.deepcopy(board) 
+    newboard[action[0]][action[1]] = curr 
+    return newboard 
 
 
 def winner(board):
@@ -73,9 +78,11 @@ def winner(board):
 
 def terminal(board):
     terminal_state = False
-    for row in board:
-       for cell in row:
-           if cell == None:
+    if winner(board) == True:
+        return True
+    for row in range(3):
+       for cell in range(3):
+           if board[row][cell] == None:
                return False 
 
     return True
@@ -87,7 +94,7 @@ def utility(board):
     """
     if(winner(board) == "X"):
         return 1
-    elif(winner(board) == "Y"):
+    elif(winner(board) == O):
         return -1 
     else:
         return 0
@@ -97,4 +104,70 @@ def minimax(board):
     """
     Returns the optimal action for the current player on the board.
     """
-    
+    current = player(board)
+    actionset = actions(board)
+
+    maxaction = None
+    if terminal(board):
+        return utility(board)
+    """
+    else:
+        if(player == "X"):
+            max = -1
+            
+            for action in actionset:
+                newboard = result(board, action, player)
+                move  = minimax(newboard)
+                if(move >= max):
+                    maxaction = action
+                    max = move
+        if(player == "Y"):
+            min = 1 
+            
+            for action in actionset:
+                newboard = result(board, action, player)
+                move  = minimax(newboard)
+                if(move <= min):
+                    maxaction = action
+                    max = move
+        
+    return maxaction
+    """
+    if(dp.get(str(board)) != None):
+        return dp[str(board)]
+    if (player == "X"):
+        maxvalue(board)
+        return dp[str(board)]
+    else:
+        minvalue(board)
+        return dp[str(board)]
+         
+
+
+def maxvalue(board):
+    if terminal(board):
+        return utility(board)
+    maxval = -2
+    maxaction = None
+    for action in actions(board):
+        newboard = result(board, action)
+        val = minvalue(newboard)
+        if (val > maxval):
+            maxval = val
+            maxaction = action
+    dp[str(board)] = maxaction
+    return maxval
+
+def minvalue(board):
+    if terminal(board):
+        return utility(board)
+    minval = 4
+    minaction = None
+    for action in actions(board):
+        newboard = result(board, action)
+        val = maxvalue(newboard)
+        if(val < minval):
+            minval = val
+            minaction = action
+    dp[str(board)] = minaction
+    return minval
