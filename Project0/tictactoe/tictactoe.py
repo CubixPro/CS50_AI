@@ -78,7 +78,7 @@ def winner(board):
 
 def terminal(board):
     terminal_state = False
-    if winner(board) == True:
+    if winner(board) != None:
         return True
     for row in range(3):
        for cell in range(3):
