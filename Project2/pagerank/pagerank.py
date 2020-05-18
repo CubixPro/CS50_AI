@@ -2,15 +2,18 @@ import os
 import random
 import re
 import sys
+import numpy as np
 
 DAMPING = 0.85
 SAMPLES = 10000
 
 
 def main():
+    
     if len(sys.argv) != 2:
         sys.exit("Usage: python pagerank.py corpus")
     corpus = crawl(sys.argv[1])
+    
     ranks = sample_pagerank(corpus, DAMPING, SAMPLES)
     print(f"PageRank Results from Sampling (n = {SAMPLES})")
     for page in sorted(ranks):
@@ -57,16 +60,20 @@ def transition_model(corpus, page, damping_factor):
     linked to by `page`. With probability `1 - damping_factor`, choose
     a link at random chosen from all pages in the corpus.
     """
-    consp = damping_factor/len(corpus)
-    prob_dict = []
-    for key in corpus:
-        prob_dict[key] = 1/len(corpus)
     
-    final_prob = []
+    consp = (1 - damping_factor)/len(corpus)
+    final_prob ={} 
     for key in corpus:
         final_prob[key] = consp
-        if page in corpus[key]:
-            final_prob[key] += damping_factor * prob_dict[key] / len(corpus[key])
+    for element in corpus[page]:
+        if len(corpus[page]) != 0:
+            final_prob[element] += damping_factor * (1/len(corpus[page]))
+
+    if len(corpus[page]) == 0:
+        for element in corpus:
+            final_prob[element] += damping_factor * 1/len(corpus) 
+
+    return final_prob
 
 
 
@@ -80,7 +87,31 @@ def sample_pagerank(corpus, damping_factor, n):
     their estimated PageRank value (a value between 0 and 1). All
     PageRank values should sum to 1.
     """
-    raise NotImplementedError
+    random_page = random.choice(list(corpus))
+    model = transition_model(corpus, random_page, damping_factor)
+    finalprob = {};
+    for page in corpus:
+        finalprob[page] = 0
+
+    finalprob[random_page] = finalprob[random_page] + 1;
+
+
+    for i in range(1, n, 1):
+        lkey = []
+        lp = []
+        for element in model:
+            lkey.append(element)
+            lp.append(model[element])
+        random_page = np.random.choice(lkey, 1, p = lp)
+        model = transition_model(corpus, random_page[0], damping_factor)
+        finalprob[random_page[0]] = finalprob[random_page[0]] + 1;
+    
+    for page in finalprob:
+        finalprob[page] = finalprob[page]/n
+        
+
+    return finalprob
+
 
 
 def iterate_pagerank(corpus, damping_factor):
@@ -92,8 +123,26 @@ def iterate_pagerank(corpus, damping_factor):
     their estimated PageRank value (a value between 0 and 1). All
     PageRank values should sum to 1.
     """
-    raise NotImplementedError
-
+    final_prob = {}
+    for element in corpus:
+        final_prob[element] = 1/len(corpus)
+    stop = False
+    while stop is False:
+        count = 0
+        for element in corpus:
+            probability = (1 - damping_factor)/len(corpus) 
+            for element2 in corpus:
+                if element in corpus[element2]:
+                    probability = probability + damping_factor * final_prob[element2]/len(corpus[element2])
+            
+            if abs(probability - final_prob[element]) <= 0.001:
+                count = count + 1
+            final_prob[element] = probability
+        
+        if count == len(corpus):
+            stop = True
+    return final_prob
+            
 
 if __name__ == "__main__":
     main()
