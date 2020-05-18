@@ -143,6 +143,8 @@ def joint_probability(people, one_gene, two_genes, have_trait):
     for person in one_gene:
         if people.get(person) == None:
             probability = probability * PROBS["gene"][1]
+        else:
+            probability
     raise NotImplementedError
 
 
