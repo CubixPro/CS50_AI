@@ -139,13 +139,46 @@ def joint_probability(people, one_gene, two_genes, have_trait):
         * everyone in set `have_trait` has the trait, and
         * everyone not in set` have_trait` does not have the trait.
     """
-    probability = 1
+    jprobability = 1
+    no_gene = set()
+    people_with_no_parents = set()
+    probability = {}
+    for person in people:
+        if people[person].get("mother") == None:
+            people_with_no_parents.add(person)
+    
+    for person in people_with_no_parents:
+        probability[person] = {}
+        probability[person][1] = PROBS["gene"][1]
+        probability[person][0] = PROBS["gene"][0]
+        probability[person][2] = PROBS["gene"][2]
+
+    for person in people:
+        if probability.get(person) == None:
+            probability[person] = {}
+            probability[person][0] = probability[people[person]["mother"]][0] * probability[people[person]["father"]][0]
+            probability[person][1] = probability[people[person]["mother"]][1] * probability[people[person]["father"]][0] + probability[people[person]["mother"]][0] * probability[people[person]["father"]][1] 
+            probability[person][2] = probability[people[person]["mother"]][2] * probability[people[person]["father"]][0] + probability[people[person]["mother"]][1] * probability[people[person]["father"]][1] + probability[people[person]["mother"]][0] * probability[people[person]["father"]][2]
+
+
     for person in one_gene:
-        if people.get(person) == None:
-            probability = probability * PROBS["gene"][1]
-        else:
-            probability
-    raise NotImplementedError
+        jprobability = jprobability * probability[person][1]
+
+    for person in two_genes:
+        jprobability = jprobability * probability[person][2]
+
+    for person in no_gene:
+        jprobability = jprobability * probability[person][0]
+
+
+
+
+
+    
+
+    
+            
+
 
 
 def update(probabilities, one_gene, two_genes, have_trait, p):
